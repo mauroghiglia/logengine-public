@@ -1,0 +1,6 @@
+# This section stops the Docking containers
+cd ~/evaluate-loki
+docker compose down
+
+# This section stops the log-generator
+~/scripts/log_generator/logging-manager.py stop

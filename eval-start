@@ -1,0 +1,6 @@
+# This section starts the Docker containers
+cd ~/evaluate-loki
+docker compose up -d
+
+# This section starts the log-generator
+~/scripts/log_generator/logging-manager.py start
