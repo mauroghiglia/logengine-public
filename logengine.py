@@ -11,23 +11,24 @@ log_dir = "/var/log/log-generator/ccp_logs"
 logging_output_file = "/var/log/log-generator/logging_output.log"
 log_control_file = "/var/log/log-generator/logging_active.flag"
 
-# Test GitHub
-
 # Ensure log directories exist
 os.makedirs(log_dir, exist_ok=True)
 os.makedirs(os.path.dirname(logging_output_file), exist_ok=True)
 
 # Log levels and message pools
 log_levels = ["INFO", "WARNING", "ERROR", "DEBUG"]
+
 series_messages = [
     "End Process Message",
     "Processing series data batch",
     "Successfully processed message"
 ]
+
 trades_messages = [
     "Start Process Message",
     "Unknown keyword $id - you should define your own Meta Schema."
 ]
+
 prices_messages = [
     "Exchange[ExchangePattern: InOnly, BodyType: String, Body: {\"msg_code\":\"690\",\"msg_sequence\":1}"
 ]
