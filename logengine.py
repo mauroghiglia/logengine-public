@@ -11,6 +11,8 @@ log_dir = "/var/log/log-generator/ccp_logs"
 logging_output_file = "/var/log/log-generator/logging_output.log"
 log_control_file = "/var/log/log-generator/logging_active.flag"
 
+# Test GitHub
+
 # Ensure log directories exist
 os.makedirs(log_dir, exist_ok=True)
 os.makedirs(os.path.dirname(logging_output_file), exist_ok=True)
