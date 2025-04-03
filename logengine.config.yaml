@@ -1,0 +1,44 @@
+log_dir: "/var/log/log-generator/ccp_logs"
+logging_output_file: "/var/log/log-generator/logging_output.log"
+log_control_file: "/var/log/log-generator/logging_active.flag"
+
+max_runtime_hours: 24
+
+log_types:
+  prices: true
+  trades: true
+  series: true
+
+interval_range: [1, 3]
+log_levels: ["INFO", "WARNING", "ERROR", "DEBUG"]
+
+categories:
+  prices: "CTE.PRI.CCP.TO.CCG.Q"
+  trades: "CTE.TRA.CCP.TO.CCG.Q"
+  series: "CTE.SER.CCP.TO.CCG.Q"
+
+messages:
+  prices:
+    - "Getting previousPrice for ID: *"
+    - "Using previousPrice: *"
+    - "Using latestPrice: *"
+    - "Historical price found: *"
+    - "ID * added to history"
+    - "Latest price changed for ID *: * -> *"
+    - "Price difference is *"
+    - "PRICE HAS CHANGED TOO MUCH for ID *: *"
+    - "Old price: *, New price: *"
+    - "Price saved for ID *: *"
+    - "Sending price change notification for ID *"
+  trades:
+    - "Start Process Message"
+    - "End Process Message"
+    - 'Unknown keyword $id - you should define your own Meta Schema.'
+    - "Unknown keyword version - you should define your own Meta Schema."
+    - "Unknown keyword examples - you should define your own Meta Schema."
+    - "Could not refresh JMS Connection for destination 'CTE2.TRADES.CCPRO.TO.CCG.Q' - retrying using FixedBackOff{interval=5000, currentAttempts=0, maxAttempts=unlimited}. Cause: JMSWMQ0018: Failed to connect to queue manager 'GTWCTE2' with connection mode 'Client' and host name '10.10.50.50(1438)'.; nested exception is com.ibm.mq.MQException: JMSCMQ0001: IBM MQ call failed with compcode '2' ('MQCC_FAILED') reason '2538' ('MQRC_HOST_NOT_AVAILABLE')."
+    - "Setup of JMS message listener invoker failed for destination 'CTE2.TRADES.CCPRO.TO.CCG.Q' - trying to recover. Cause: JMSWMQ2002: Failed to get a message from destination 'CTE2.TRADES.CCPRO.TO.CCG.Q'.; nested exception is com.ibm.mq.MQException: JMSCMQ0001: IBM MQ call failed with compcode '2' ('MQCC_FAILED') reason '2009' ('MQRC_CONNECTION_BROKEN')."
+  series:
+    - "Start Process Message for ID *"
+    - "End Process Message for ID *"
+

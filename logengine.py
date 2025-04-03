@@ -5,33 +5,31 @@ import random
 import os
 import signal
 import sys
+import yaml
 
-# === Configuration ===
-log_dir = "/var/log/log-generator/ccp_logs"
-logging_output_file = "/var/log/log-generator/logging_output.log"
-log_control_file = "/var/log/log-generator/logging_active.flag"
+# === Version ===
+__version__ = "1.1.0"
+__author__ = "Mauro Ghiglia"
+
+# === Load configuration from YAML ===
+with open("/usr/local/bin/logengine.config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+
+log_dir = config["log_dir"]
+logging_output_file = config["logging_output_file"]
+log_control_file = config["log_control_file"]
+
+log_types = config.get("log_types", {"prices": True, "trades": True, "series": True})
+interval_range = config.get("interval_range", [1, 3])
+log_levels = config.get("log_levels", ["INFO", "WARNING", "ERROR", "DEBUG"])
+categories = config.get("categories", {})
+message_sets = config.get("messages", {})
+
+max_runtime = config.get("max_runtime_hours", 24) * 60 * 60  # default to 24h
 
 # Ensure log directories exist
 os.makedirs(log_dir, exist_ok=True)
 os.makedirs(os.path.dirname(logging_output_file), exist_ok=True)
-
-# Log levels and message pools
-log_levels = ["INFO", "WARNING", "ERROR", "DEBUG"]
-
-series_messages = [
-    "End Process Message",
-    "Processing series data batch",
-    "Successfully processed message"
-]
-
-trades_messages = [
-    "Start Process Message",
-    "Unknown keyword $id - you should define your own Meta Schema."
-]
-
-prices_messages = [
-    "Exchange[ExchangePattern: InOnly, BodyType: String, Body: {\"msg_code\":\"690\",\"msg_sequence\":1}"
-]
 
 stopped_by_signal = False
 
@@ -52,12 +50,24 @@ def log_to_file(message):
     with open(logging_output_file, "a") as f:
         f.write(entry + "\n")
 
+def generate_message(template):
+    if "*" not in template:
+        return template
+    parts = template.split("*")
+    rand_id = f"ID{random.randint(1000,9999)}"
+    rand_value = round(random.uniform(10.0, 100.0), 2)
+    return "".join(
+        parts[i] + (rand_id if i % 2 == 0 else str(rand_value))
+        for i in range(len(parts))
+    )
+
 def log_message(log_file_name, category, context, messages):
     log_file_path = os.path.join(log_dir, log_file_name)
     thread_id = f"k{random.randint(100000, 999999)}"
     process_id = os.getpid()
     level = random.choice(log_levels)
-    message = random.choice(messages)
+    message_template = random.choice(messages)
+    message = generate_message(message_template)
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
 
     entry = f"{timestamp},{random.randint(100,999)} {thread_id} <unknown>[{process_id}] {level:<5} [{category}] ({context}) {message}"
@@ -76,18 +86,30 @@ def start_logging():
         with open(log_control_file, "w") as flag_file:
             flag_file.write(str(pid))
 
-        # CLI output
+        print(f"logengine v{__version__} by {__author__}")
         print(f"✅ Logging started with PID {pid}")
         print(f"📂 Generating logs in {log_dir}")
-
-        # Log to file
+        log_to_file(f"logengine v{__version__} by {__author__}")
         log_to_file(f"Logging started with PID {pid}.")
 
+        # Reset enabled log files
+        for log_type in log_types:
+            if log_types[log_type]:
+                open(os.path.join(log_dir, f"{log_type}.log"), "w").close()
+
+        # Runtime tracking
+        start_time = time.time()
+
         while os.path.exists(log_control_file):
-            log_message("series.log", "CTE.SER.CCP.TO.CCG.Q", "Camel (camel-1) thread #1", series_messages)
-            log_message("trades.log", "CTE.TRA.CCP.TO.CCG.Q", "Camel (camel-1) thread #1", trades_messages)
-            log_message("prices.log", "CTE.PRI.CCP.TO.CCG.Q", "Camel (camel-1) thread #1", prices_messages)
-            time.sleep(random.randint(1, 3))
+            for log_type in ["series", "trades", "prices"]:
+                if log_types.get(log_type):
+                    log_message(
+                        f"{log_type}.log",
+                        categories.get(log_type, f"CTE.{log_type.upper()}.CCP.TO.CCG.Q"),
+                        "Camel (camel-1) thread #1",
+                        message_sets.get(log_type, ["No message defined"])
+                    )
+            time.sleep(random.randint(*interval_range))
 
     except Exception as e:
         print(f"❌ Logging process stopped with ERROR: {e}")
