@@ -4,6 +4,10 @@ log_control_file: "/var/log/log-generator/logging_active.flag"
 
 max_runtime_hours: 24
 
+# Here you can choose which logs you want to generate. The default is all logs.
+# You can set the value to true or false for each log type.
+# If you set a log type to false, it will not be generated.
+
 log_types:
   prices: true
   trades: true
