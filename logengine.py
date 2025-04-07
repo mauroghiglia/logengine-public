@@ -8,27 +8,9 @@ import sys
 import yaml
 import json
 import threading
-# === Constants ===
-
-# Schedule log cleanup every Saturday night at 24:00
-def schedule_log_cleanup():
-    while True:
-        current_time = time.localtime()
-        # Check if it's Saturday and the time is 24:00 (00:00 Sunday)
-        if current_time.tm_wday == 5 and current_time.tm_hour == 0 and current_time.tm_min == 0:
-            for log_type in ["series", "trades", "prices"]:
-                log_file_path = os.path.join(log_dir, f"{log_type}.log")
-                open(log_file_path, "w").close()  # Empty the log file
-                log_to_file(f"Log file {log_file_path} cleared.")
-            time.sleep(60)  # Avoid multiple executions within the same minute
-        time.sleep(30)  # Check every 30 seconds
-
-# Start the log cleanup scheduler in a separate thread
-cleanup_thread = threading.Thread(target=schedule_log_cleanup, daemon=True)
-cleanup_thread.start()
 
 # === Version ===
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 __author__ = "Mauro Ghiglia"
 
 # === Load configuration from YAML ===
@@ -41,11 +23,19 @@ log_control_file = config["log_control_file"]
 
 log_types = config.get("log_types", {"prices": True, "trades": True, "series": True})
 interval_range = config.get("interval_range", [1, 3])
-log_levels = config.get("log_levels", ["INFO", "WARNING", "ERROR", "DEBUG"])
+raw_levels = config.get("log_levels", {"INFO": 50, "WARNING": 20, "ERROR": 10, "DEBUG": 20})
 categories = config.get("categories", {})
 message_sets = config.get("messages", {})
 
 max_runtime = config.get("max_runtime_hours", 24) * 60 * 60  # default to 24h
+
+# Handle both old and new formats for log_levels
+if isinstance(raw_levels, dict):
+    log_levels = list(raw_levels.keys())
+    level_weights = list(raw_levels.values())
+else:
+    log_levels = raw_levels
+    level_weights = [1] * len(log_levels)
 
 # Ensure log directories exist
 os.makedirs(log_dir, exist_ok=True)
@@ -85,7 +75,7 @@ def log_message(log_file_name, category, context, messages):
     log_file_path = os.path.join(log_dir, log_file_name)
     thread_id = f"k{random.randint(100000, 999999)}"
     process_id = os.getpid()
-    level = random.choice(log_levels)
+    level = random.choices(log_levels, weights=level_weights, k=1)[0]
     message_template = random.choice(messages)
     message = generate_message(message_template)
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
@@ -100,19 +90,30 @@ def log_message(log_file_name, category, context, messages):
         "message": message
     }
 
-    # Write structured JSON log
     with open(log_file_path, "a") as log_file:
         log_file.write(json.dumps(log_entry) + "\n")
 
-    # Also log to main output file for status
     log_to_file(f"[{level}] {category} {message}")
+
+# === Schedule Log Cleanup ===
+def schedule_log_cleanup():
+    while True:
+        current_time = time.localtime()
+        if current_time.tm_wday == 5 and current_time.tm_hour == 0 and current_time.tm_min == 0:
+            for log_type in ["series", "trades", "prices"]:
+                log_file_path = os.path.join(log_dir, f"{log_type}.log")
+                open(log_file_path, "w").close()
+                log_to_file(f"Log file {log_file_path} cleared.")
+            time.sleep(60)
+        time.sleep(30)
+
+cleanup_thread = threading.Thread(target=schedule_log_cleanup, daemon=True)
+cleanup_thread.start()
 
 # === Start Logging ===
 def start_logging():
     try:
         pid = os.getpid()
-
-        # Save PID in flag file
         with open(log_control_file, "w") as flag_file:
             flag_file.write(str(pid))
 
@@ -122,12 +123,10 @@ def start_logging():
         log_to_file(f"logengine v{__version__} by {__author__}")
         log_to_file(f"Logging started with PID {pid}.")
 
-        # Reset enabled log files
         for log_type in log_types:
             if log_types[log_type]:
                 open(os.path.join(log_dir, f"{log_type}.log"), "w").close()
 
-        # Runtime tracking
         start_time = time.time()
 
         while os.path.exists(log_control_file):
@@ -166,10 +165,32 @@ def stop_logging():
         print("⚠️ Logging is not currently running.")
         log_to_file("Logging stop requested, but no active flag file found.")
 
+def get_status():
+    if os.path.exists(log_control_file):
+        try:
+            with open(log_control_file, "r") as flag_file:
+                pid = flag_file.read().strip()
+            status = f"✅ Logger is running with PID {pid}."
+        except Exception:
+            status = "⚠️ Logger is running, but PID could not be determined."
+    else:
+        status = "🛑 Logger is not running."
+
+    log_sizes = []
+    for log_type in ["series", "trades", "prices"]:
+        log_file_path = os.path.join(log_dir, f"{log_type}.log")
+        if os.path.exists(log_file_path):
+            size = os.path.getsize(log_file_path)
+            log_sizes.append(f"{log_type}.log: {size} bytes")
+        else:
+            log_sizes.append(f"{log_type}.log: File not found")
+
+    return status + "\n" + "\n".join(log_sizes)
+
 # === CLI Entry Point ===
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: logengine.py [start|stop]")
+        print("Usage: logengine.py [start|stop|status]")
         sys.exit(1)
 
     command = sys.argv[1].lower()
@@ -177,5 +198,8 @@ if __name__ == "__main__":
         start_logging()
     elif command == "stop":
         stop_logging()
+    elif command == "status":
+        print(get_status())
     else:
-        print("Invalid command. Use 'start' or 'stop'.")
+        print("Invalid command. Use 'start', 'stop', or 'status'.")
+        sys.exit(1)
