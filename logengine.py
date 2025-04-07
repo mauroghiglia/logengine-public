@@ -6,9 +6,29 @@ import os
 import signal
 import sys
 import yaml
+import json
+import threading
+# === Constants ===
+
+# Schedule log cleanup every Saturday night at 24:00
+def schedule_log_cleanup():
+    while True:
+        current_time = time.localtime()
+        # Check if it's Saturday and the time is 24:00 (00:00 Sunday)
+        if current_time.tm_wday == 5 and current_time.tm_hour == 0 and current_time.tm_min == 0:
+            for log_type in ["series", "trades", "prices"]:
+                log_file_path = os.path.join(log_dir, f"{log_type}.log")
+                open(log_file_path, "w").close()  # Empty the log file
+                log_to_file(f"Log file {log_file_path} cleared.")
+            time.sleep(60)  # Avoid multiple executions within the same minute
+        time.sleep(30)  # Check every 30 seconds
+
+# Start the log cleanup scheduler in a separate thread
+cleanup_thread = threading.Thread(target=schedule_log_cleanup, daemon=True)
+cleanup_thread.start()
 
 # === Version ===
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __author__ = "Mauro Ghiglia"
 
 # === Load configuration from YAML ===
@@ -70,12 +90,22 @@ def log_message(log_file_name, category, context, messages):
     message = generate_message(message_template)
     timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
 
-    entry = f"{timestamp},{random.randint(100,999)} {thread_id} <unknown>[{process_id}] {level:<5} [{category}] ({context}) {message}"
+    log_entry = {
+        "timestamp": timestamp,
+        "thread": thread_id,
+        "pid": process_id,
+        "level": level,
+        "category": category,
+        "context": context,
+        "message": message
+    }
 
+    # Write structured JSON log
     with open(log_file_path, "a") as log_file:
-        log_file.write(entry + "\n")
-    
-    log_to_file(entry)
+        log_file.write(json.dumps(log_entry) + "\n")
+
+    # Also log to main output file for status
+    log_to_file(f"[{level}] {category} {message}")
 
 # === Start Logging ===
 def start_logging():
