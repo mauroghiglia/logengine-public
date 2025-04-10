@@ -17,6 +17,10 @@ __author__ = "Mauro Ghiglia"
 with open("/usr/local/bin/logengine.config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
+# === New Configuration Parameters ===
+stop_day_of_week = config.get("stop_day_of_week", 5)  # 5 is Saturday (0 is Sunday)
+stop_hour = config.get("stop_hour", 0)  # 0 is midnight (12 AM)
+
 log_dir = config["log_dir"]
 logging_output_file = config["logging_output_file"]
 log_control_file = config["log_control_file"]
@@ -26,8 +30,6 @@ interval_range = config.get("interval_range", [1, 3])
 raw_levels = config.get("log_levels", {"INFO": 50, "WARNING": 20, "ERROR": 10, "DEBUG": 20})
 categories = config.get("categories", {})
 message_sets = config.get("messages", {})
-
-max_runtime = config.get("max_runtime_hours", 24) * 60 * 60  # default to 24h
 
 # Handle both old and new formats for log_levels
 if isinstance(raw_levels, dict):
@@ -99,7 +101,7 @@ def log_message(log_file_name, category, context, messages):
 def schedule_log_cleanup():
     while True:
         current_time = time.localtime()
-        if current_time.tm_wday == 5 and current_time.tm_hour == 0 and current_time.tm_min == 0:
+        if current_time.tm_wday == stop_day_of_week and current_time.tm_hour == stop_hour and current_time.tm_min == 0:
             for log_type in ["series", "trades", "prices"]:
                 log_file_path = os.path.join(log_dir, f"{log_type}.log")
                 open(log_file_path, "w").close()

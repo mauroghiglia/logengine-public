@@ -1,8 +1,16 @@
+# This is the configuration file for the log generator (logengine.py).
+# It is used to generate logs for the log engine.
+# It should be kept in the same directory as the logengine.py file, with the same user and execute permissions.
+
+# Folders
 log_dir: "/var/log/log-generator/ccp_logs"
 logging_output_file: "/var/log/log-generator/logging_output.log"
 log_control_file: "/var/log/log-generator/logging_active.flag"
 
-max_runtime_hours: 24
+# The log generator will run until a specified day and hour
+stop_day_of_week: 5  # 5 is Saturday (0 is Sunday)
+stop_hour: 0  # 0 is midnight (12 AM)
+
 
 # Here you can choose which logs you want to generate. The default is all logs.
 # You can set the value to true or false for each log type.
@@ -13,17 +21,25 @@ log_types:
   trades: true
   series: true
 
+# Range of time intervals, in seconds, between the log generation events
 interval_range: [1, 3]
+
+# Proportions between the different log types.
 log_levels:
   INFO: 50
   WARNING": 20
   ERROR: 10
   DEBUG: 20
 
+# Identifiers for the different log types (category).
 categories:
   prices: "CTE.PRI.CCP.TO.CCG.Q"
   trades: "CTE.TRA.CCP.TO.CCG.Q"
   series: "CTE.SER.CCP.TO.CCG.Q"
+
+# The log messages for each log type. You can add or remove messages as needed.
+# The log messages should be in the format "log message".
+# Pay attention to the message "Unknown keyword $id.." - It's between single quotes since it contains a special character '$'.
 
 messages:
   prices:
