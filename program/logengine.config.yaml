@@ -7,7 +7,7 @@ log_dir: "/var/log/log-generator/ccp_logs"
 logging_output_file: "/var/log/log-generator/logging_output.log"
 log_control_file: "/var/log/log-generator/logging_active.flag"
 
-# The log generator will run until a specified day and hour
+# Reset day of the week and time.
 stop_day_of_week: 5  # 5 is Saturday (0 is Sunday)
 stop_hour: 0  # 0 is midnight (12 AM)
 
