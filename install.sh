@@ -23,11 +23,11 @@ sudo chmod +x program/logengine.config.yaml
 # Create a directory for the logengine log files
 sudo mkdir -p /var/log/logengine-public
 sudo chmod +x /var/log/logengine-public
-sudo chown $ubuntu:$ubuntu /var/log/logengine-public
+sudo chown ubuntu:ubuntu /var/log/logengine-public
 
 sudo mkdir -p /var/log/logengine-public-logs
 sudo chmod +x /var/log/logengine-public-logs
-sudo chown $ubuntu:$ubuntu /var/log/logengine-public-logs
+sudo chown ubuntu:ubuntu /var/log/logengine-public-logs
 
 echo "lg-start, lg-stop, and og-status have been installed to /usr/local/bin."
 echo "A folder named /var/log/logengine-public has been created for log files."
