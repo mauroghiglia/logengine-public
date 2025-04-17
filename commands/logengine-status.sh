@@ -2,7 +2,7 @@
 # logengine.py start
 
 # Starting in background
-python3 /usr/local/bin/logengine.py start &
+python3 ~/projects/logengine-public/program/logengine.py status
 
 # Force a clean newline and prompt redraw
 sleep 0.2
