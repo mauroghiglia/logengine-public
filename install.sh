@@ -12,9 +12,9 @@ sudo cp commands/logengine-stop.sh /usr/local/bin/logengine-stop
 sudo cp commands/logengine-status.sh /usr/local/bin/logengine-status
 
 # Make them executable
-# sudo chmod +x /usr/local/bin/logengine-start
-# sudo chmod +x /usr/local/bin/logengine-stop
-# sudo chmod +x /usr/local/bin/logengine-status
+sudo chmod +x /usr/local/bin/logengine-start
+sudo chmod +x /usr/local/bin/logengine-stop
+sudo chmod +x /usr/local/bin/logengine-status
 
 # Make program files executable
 # sudo chmod +x program/logengine.py
