@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Set executable permissions on install.sh if not already set
+chmod +x "$0"
+
+# Your installation commands here
+echo "Running installation..."
+
 # Install scripts to /usr/local/bin
 sudo cp commands/logengine-start.sh /usr/local/bin/logengine-start
 sudo cp commands/logengine-stop.sh /usr/local/bin/logengine-stop
