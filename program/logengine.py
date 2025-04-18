@@ -13,8 +13,14 @@ import threading
 __version__ = "3.0.1"
 __author__ = "Mauro Ghiglia"
 
+# Get the directory where the script is located
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+# Construct the full path to the config file
+config_path = os.path.join(script_dir, "logengine.config.yaml")
+
 # === Load configuration from YAML ===
-with open("/usr/local/bin/logengine.config.yaml", "r") as f:
+with open(config_path, "r") as f:
     config = yaml.safe_load(f)
 
 # === New Configuration Parameters ===
