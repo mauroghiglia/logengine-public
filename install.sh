@@ -29,6 +29,6 @@ sudo mkdir -p /var/log/logengine-public/logengine-public-logs
 sudo chmod +x /var/log/logengine-public/logengine-public-logs
 sudo chown ubuntu:ubuntu /var/log/logengine-public/logengine-public-logs
 
-echo "lg-start, lg-stop, and og-status have been installed to /usr/local/bin."
+echo "logengine-start, logengine-stop, and logengine-status have been installed to /usr/local/bin."
 echo "A folder named /var/log/logengine-public has been created for log files."
 echo "You can view the logs in /var/log/logengine-public-logs."
