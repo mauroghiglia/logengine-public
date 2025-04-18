@@ -3,9 +3,9 @@
 # It should be kept in the same directory as the logengine.py file, with the same user and execute permissions.
 
 # Folders
-log_dir: "/var/log/log-generator/ccp_logs"
-logging_output_file: "/var/log/log-generator/logging_output.log"
-log_control_file: "/var/log/log-generator/logging_active.flag"
+log_dir: "/var/log/logengine-public/logengine-public-logs"
+logging_output_file: "/var/log/logengine-public/logengine-public-logs/logging_output.log"
+log_control_file: "/var/log/logengine-public/logengine-public-logs/logging_active.flag"
 
 # Reset day of the week and time.
 stop_day_of_week: 5  # 5 is Saturday (0 is Sunday)
