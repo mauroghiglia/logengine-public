@@ -8,9 +8,11 @@ import sys
 import yaml
 import json
 import threading
+import csv
+import xml.etree.ElementTree as ET
 
 # === Version ===
-__version__ = "3.0.1"
+__version__ = "4.0.1"
 __author__ = "Mauro Ghiglia"
 
 # Get the directory where the script is located
@@ -30,6 +32,7 @@ stop_hour = config.get("stop_hour", 0)  # 0 is midnight (12 AM)
 log_dir = config["log_dir"]
 logging_output_file = config["logging_output_file"]
 log_control_file = config["log_control_file"]
+log_format = config.get("log_format", "json")
 
 log_types = config.get("log_types", {"prices": True, "trades": True, "series": True})
 interval_range = config.get("interval_range", [1, 3])
@@ -79,6 +82,21 @@ def generate_message(template):
         for i in range(len(parts))
     )
 
+def format_log_entry(entry):
+    if log_format == "json":
+        return json.dumps(entry)
+    elif log_format == "plain":
+        return f"{entry['timestamp']} [{entry['level']}] {entry['category']} - {entry['message']}"
+    elif log_format == "csv":
+        return f"{entry['timestamp']},{entry['level']},{entry['category']},{entry['message']}"
+    elif log_format == "xml":
+        log_elem = ET.Element("log")
+        for key, val in entry.items():
+            ET.SubElement(log_elem, key).text = str(val)
+        return ET.tostring(log_elem, encoding='unicode')
+    else:
+        return json.dumps(entry)
+
 def log_message(log_file_name, category, context, messages):
     log_file_path = os.path.join(log_dir, log_file_name)
     thread_id = f"k{random.randint(100000, 999999)}"
@@ -99,7 +117,7 @@ def log_message(log_file_name, category, context, messages):
     }
 
     with open(log_file_path, "a") as log_file:
-        log_file.write(json.dumps(log_entry) + "\n")
+        log_file.write(format_log_entry(log_entry) + "\n")
 
     log_to_file(f"[{level}] {category} {message}")
 
@@ -134,8 +152,6 @@ def start_logging():
         for log_type in log_types:
             if log_types[log_type]:
                 open(os.path.join(log_dir, f"{log_type}.log"), "w").close()
-
-        start_time = time.time()
 
         while os.path.exists(log_control_file):
             for log_type in ["series", "trades", "prices"]:

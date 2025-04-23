@@ -2,6 +2,9 @@
 # It is used to generate logs for the log engine.
 # It should be kept in the same directory as the logengine.py file, with the same user and execute permissions.
 
+# Log Format (if unknown it defaults to 'json')
+log_format: json  # or "plain", "csv", "xml"
+
 # Folders
 log_dir: "/var/log/logengine-public/logengine-public-logs"
 logging_output_file: "/var/log/logengine-public/logengine-public-logs/logging_output.log"
