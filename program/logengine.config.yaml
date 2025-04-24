@@ -2,6 +2,10 @@
 # It is used to generate logs for the log engine.
 # It should be kept in the same directory as the logengine.py file, with the same user and execute permissions.
 
+# Check if we are in test mode or production mode.
+test_mode: false  # Set to true for test mode, false for production mode.
+# In test mode, the log engine will only generate a single log line as terminal output, but will still run and check for errors.
+
 # Log Format (if unknown it defaults to 'json')
 log_format: json  # or "plain", "csv", "xml"
 

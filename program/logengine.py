@@ -29,6 +29,8 @@ with open(config_path, "r") as f:
 stop_day_of_week = config.get("stop_day_of_week", 5)  # 5 is Saturday (0 is Sunday)
 stop_hour = config.get("stop_hour", 0)  # 0 is midnight (12 AM)
 
+test_mode = config.get("test_mode", False)
+
 log_dir = config["log_dir"]
 logging_output_file = config["logging_output_file"]
 log_control_file = config["log_control_file"]
@@ -59,7 +61,7 @@ def handle_exit(signum, frame):
     global stopped_by_signal
     stopped_by_signal = True
     log_to_file("Logging stopped manually (SIGTERM received).")
-    print("🛑 Logging stopped manually (SIGTERM received).")
+    print("\U0001F6D1 Logging stopped manually (SIGTERM received).")
     sys.exit(0)
 
 signal.signal(signal.SIGTERM, handle_exit)
@@ -121,7 +123,6 @@ def log_message(log_file_name, category, context, messages):
 
     log_to_file(f"[{level}] {category} {message}")
 
-# === Schedule Log Cleanup ===
 def schedule_log_cleanup():
     while True:
         current_time = time.localtime()
@@ -136,7 +137,6 @@ def schedule_log_cleanup():
 cleanup_thread = threading.Thread(target=schedule_log_cleanup, daemon=True)
 cleanup_thread.start()
 
-# === Start Logging ===
 def start_logging():
     try:
         pid = os.getpid()
@@ -148,6 +148,19 @@ def start_logging():
         print(f"📂 Generating logs in {log_dir}")
         log_to_file(f"logengine v{__version__} by {__author__}")
         log_to_file(f"Logging started with PID {pid}.")
+
+        if test_mode:
+            print("🧪 Test mode enabled. Generating a single log message and exiting.")
+            for log_type in ["series", "trades", "prices"]:
+                if log_types.get(log_type):
+                    log_message(
+                        f"{log_type}.log",
+                        categories.get(log_type, f"CTE.{log_type.upper()}.CCP.TO.CCG.Q"),
+                        "Camel (camel-1) thread #1",
+                        message_sets.get(log_type, ["No message defined"])
+                    )
+            print("✅ Test log message generated. Exiting.")
+            return
 
         for log_type in log_types:
             if log_types[log_type]:
@@ -173,7 +186,6 @@ def start_logging():
         print("⏹️ Logging process stopped normally.")
         log_to_file("Logging process stopped normally.")
 
-# === Stop Logging ===
 def stop_logging():
     if os.path.exists(log_control_file):
         try:
@@ -211,7 +223,6 @@ def get_status():
 
     return status + "\n" + "\n".join(log_sizes)
 
-# === CLI Entry Point ===
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: logengine.py [start|stop|status]")
