@@ -201,6 +201,8 @@ def stop_logging():
         print("⚠️ Logging is not currently running.")
         log_to_file("Logging stop requested, but no active flag file found.")
 
+    print()  # <== This ensures clean newline after any output
+
 def get_status():
     if os.path.exists(log_control_file):
         try:
