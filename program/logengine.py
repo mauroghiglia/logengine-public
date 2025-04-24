@@ -183,7 +183,7 @@ def start_logging():
         sys.exit(1)
 
     if not stopped_by_signal:
-        print("⏹️ Logging process stopped normally.")
+        # print("⏹️ Logging process stopped normally.")  # Removed to prevent prompt hijack
         log_to_file("Logging process stopped normally.")
     else:
         # Don't print anything on SIGTERM to avoid prompt clutter
