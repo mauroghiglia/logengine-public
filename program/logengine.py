@@ -185,6 +185,9 @@ def start_logging():
     if not stopped_by_signal:
         print("⏹️ Logging process stopped normally.")
         log_to_file("Logging process stopped normally.")
+    else:
+        # Don't print anything on SIGTERM to avoid prompt clutter
+        pass
 
 def stop_logging():
     if os.path.exists(log_control_file):
